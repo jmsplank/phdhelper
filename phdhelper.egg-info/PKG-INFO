@@ -1,0 +1,20 @@
+Metadata-Version: 2.1
+Name: phdhelper
+Version: 0.0.1
+Summary: Helper functions for things to do with SEP trubulence physics
+Home-page: https://github.com/jmsplank/phdhelper.git
+Author: James Plank
+Author-email: jp5g16@soton.ac.uk
+License: UNKNOWN
+Description: # pyhelper
+        
+        ## Structure
+        
+        Contains math.transforms with function to rotate data to point in direction of another.
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown

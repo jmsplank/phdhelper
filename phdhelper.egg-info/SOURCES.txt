@@ -1,0 +1,10 @@
+README.md
+setup.py
+phdhelper/__init__.py
+phdhelper/__main__.py
+phdhelper.egg-info/PKG-INFO
+phdhelper.egg-info/SOURCES.txt
+phdhelper.egg-info/dependency_links.txt
+phdhelper.egg-info/top_level.txt
+phdhelper/math/__init__.py
+phdhelper/math/transforms.py
