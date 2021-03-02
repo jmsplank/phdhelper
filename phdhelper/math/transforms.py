@@ -1,5 +1,4 @@
 """Matrix rotation to move +z to some arbitrary vector.
-Only placed here to avoid circular imports.
 """
 import numpy as np
 
