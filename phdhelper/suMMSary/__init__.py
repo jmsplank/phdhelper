@@ -1,1 +1,1 @@
-from .suMMSary import EventSummary
+from .suMMSary import Event

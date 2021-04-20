@@ -3,105 +3,43 @@ import pyspedas
 from phdhelper.helpers import title_print
 from phdhelper.helpers.CONSTANTS import c, k_B, m_e, m_i, mu_0, q
 from pytplot import data_quants
+import matplotlib.pyplot as plt
+from datetime import datetime as dt
+from cached_property import cached_property
 
 
-class EventSummary:
-    fgm = None
-    fpi = None
-    fpi_dist = None
+class EventHandler:
+    FPI = None
+    FPI_DIST = None
+    FSM = None
+    FGM = None
 
-    def __init__(self, trange, probe):
-        self.trange = trange
-        self.probe = probe
+    trange = None
+    probe = None
 
-        title_print("Getting time arrays")
-        self.time_B = self.get_tplot_data(f"mms{probe}_fgm_b_gse_brst_l2", time=True)
-        self.time_V = self.get_tplot_data(f"mms{probe}_dis_bulkv_gse_brst", time=True)
-        self.time_E = self.get_tplot_data(f"mms{probe}_dis_dist_brst", time=True)
+    def load_FGM(self):
+        self.FGM = pyspedas.mms.fgm(
+            trange=self.trange, probe=self.probe, data_rate="brst"
+        )
 
-        title_print("Getting B field")
-        self.B = self.get_tplot_data(f"mms{probe}_fgm_b_gse_brst_l2")
+    def load_FSM(self):
+        raise NotImplementedError()
 
-        title_print("Getting ion velocity")
-        self.v_i = self.get_tplot_data(f"mms{probe}_dis_bulkv_gse_brst")
+    def load_FPI_DIST(self):
+        self.FPI_DIST = pyspedas.mms.fpi(
+            trange=self.trange,
+            probe=self.probe,
+            data_rate="brst",
+            datatype="dis-dist",
+        )
 
-        title_print("Getting Ion energy")
-        self.E_i = self.get_tplot_data(f"mms{probe}_dis_dist_brst")
-        self.E_i = self.E_i.mean(axis=2)
-        self.E_i = self.E_i.mean(axis=1)
+    def load_FPI(self):
+        self.FPI = pyspedas.mms.fpi(
+            trange=self.trange, probe=self.probe, data_rate="brst"
+        )
 
-        title_print("Calculating background flow speed")
-        self.v_0 = np.mean(np.linalg.norm(self.v_i, axis=1))
-
-        title_print("Calculating Alfven speed")
-        self.i_number_density = (
-            self.get_tplot_data(f"mms{probe}_dis_numberdensity_brst") * 1e6
-        ).mean()  # convert from cm^-3
-        self.mean_B = self.B[:, 3].mean() * 1e-9  # Convert from nT
-        self.v_A = self.mean_B / np.sqrt(mu_0 * self.i_number_density) / 1e3
-
-        title_print("Calculating plasma betas")
-        magPress = self.mean_B ** 2 / (2 * mu_0)
-        self.temp_para = (
-            self.get_tplot_data(f"mms{probe}_dis_temppara_brst").mean() * q
-        )  # Temp in eV
-        # Ion
-        self.beta_i = (self.i_number_density * k_B * self.temp_para) / magPress
-        # Electron
-        self.e_number_density = (
-            self.get_tplot_data(f"mms{probe}_des_numberdensity_brst") * 1e6
-        ).mean()
-        self.beta_e = (self.e_number_density * k_B * self.temp_para) / magPress
-
-        title_print("Calculating gyroradius")
-        # Gyroradius
-        self.temp_perp = self.get_tplot_data(f"mms{probe}_dis_tempperp_brst").mean()
-        # Ion
-        i_thermal_velocity = np.sqrt(self.temp_perp * 2 * q / m_i) / 1e3
-        i_gyrofrequency = q * self.mean_B / m_i
-        self.rho_i = i_thermal_velocity / i_gyrofrequency
-        # Electron
-        e_thermal_velocity = np.sqrt(self.temp_perp * 2 * q / m_e) / 1e3
-        e_gyrofrequency = q * self.mean_B / m_e
-        self.rho_e = e_thermal_velocity / e_gyrofrequency
-
-        title_print("Calculating Intertial length")
-        # Inertial Length
-        # Ion
-        i_plasma_frequency = 1.32e3 * np.sqrt(self.i_number_density)
-        self.p_i = c / i_plasma_frequency
-        self.p_i /= 1e3
-        # Electron
-        e_plasma_frequency = 5.64e4 * np.sqrt(self.e_number_density)
-        self.p_e = c / e_plasma_frequency
-        self.p_e /= 1e3
-
-    def get_tplot_data(self, var_str, sl=None, time=False):
-        if "fgm" in var_str:
-            # Data is from fluxgate magnetometer
-            # Check fgm data has been loaded
-            if self.fgm is None:
-                self.fgm = pyspedas.mms.fgm(
-                    trange=self.trange, probe=self.probe, data_rate="brst"
-                )
-        elif "dist" in var_str:
-            # Data is from fpi distributions
-            # Check if fpi distributions are loaded
-            if self.fpi_dist is None:
-                self.fpi_dist = pyspedas.mms.fpi(
-                    trange=self.trange,
-                    probe=self.probe,
-                    data_rate="brst",
-                    datatype="dis-dist",
-                )
-        else:
-            # Data is from FPI moments
-            # Check moments are loaded
-            if self.fpi is None:
-                self.fpi = pyspedas.mms.fpi(
-                    trange=self.trange, probe=self.probe, data_rate="brst"
-                )
-
+    @staticmethod
+    def get_tplot_data(var_str, sl=None, time=False):
         if not time:
             if sl is None:
                 # Get all data
@@ -115,32 +53,183 @@ class EventSummary:
             else:
                 return data_quants[var_str].coords["time"].values[sl]
 
-    @staticmethod
-    def _2dp(num):
-        return f"{num:.2e}"
 
-    def __str__(self):
-        return f"""
-==================================
-EventSummary: 
-    trange -> {self.trange}
-    probe  -> {self.probe}
-----------------------------------
+class TimeMMS(EventHandler):
+    def __init__(self, kw):
+        self.kw = kw
 
-Time Arrays:
-    time_B -> len {len(self.time_B)}
-    time_V -> len {len(self.time_V)}
-    time_E -> len {len(self.time_E)}
+    @cached_property
+    def timestamp(self):
+        return self.get_tplot_data(self.kw, time=True)
 
-Parameters:
-    mean B -> {self._2dp(self.mean_B * 1e9)}nT
-    Background flow speed -> {self._2dp(self.v_0)}km/s
-    Alfven speed -> {self._2dp(self.v_A)}km/s
-    Plasma beta (ion) -> {self._2dp(self.beta_i)}
-    Plasma beta (e) -> {self._2dp(self.beta_e)}
-    Gyroradios (ion) -> {self._2dp(self.rho_i)}km
-    Gyroradios (e) -> {self._2dp(self.rho_e)}km
-    Inertial length (ion) -> {self._2dp(self.p_i)}km
-    Inertial length (ion) -> {self._2dp(self.p_e)}km
-==================================
-"""
+    @cached_property
+    def date_time(self):
+        return np.array([dt.utcfromtimestamp(t) for t in self.timestamp])
+
+    def date_string(self, fmt="%H:%M"):
+        return np.array([dt.strftime(t, fmt) for t in self.date_time])
+
+
+class Species(EventHandler):
+    def __init__(self, kw) -> None:
+        self.kw = kw
+
+    @cached_property
+    def value(self):
+        return self.get_tplot_data(self.kw)
+
+    @cached_property
+    def time(self):
+        return TimeMMS(self.kw)
+
+    def plot(self):
+        plt.plot(self.value)
+
+    def __repr__(self):
+        return (
+            f"Species({self.kw})"
+            "Available properties:"
+            "   value"
+            "Available methods:"
+            "   plot"
+        )
+
+
+class MultiSpecies:
+    def __init__(self, ion_kw: str, electron_kw: str) -> None:
+        self.ion_kw = ion_kw
+        self.electron_kw = electron_kw
+
+    @cached_property
+    def ion(self):
+        return Species(self.ion_kw)
+
+    @cached_property
+    def electron(self):
+        return Species(self.electron_kw)
+
+
+class Event(EventHandler):
+    def __init__(
+        self, trange: str, required_instruments: str, probe: str = "1"
+    ) -> None:
+        self.trange = trange
+        self.required_instruments = required_instruments.upper()
+        self.probe = probe
+
+        if "FGM" in required_instruments:
+            self.load_FGM()
+        if "FPI" in required_instruments:
+            self.load_FPI()
+        if "FSM" in required_instruments:
+            self.load_FSM()
+        if "FPI_DIST" in required_instruments:
+            self.load_FPI_DIST()
+
+    @cached_property
+    def B(self):
+        return Species(f"mms{self.probe}_fgm_b_gse_brst_l2")
+
+    @cached_property
+    def v(self):
+        return MultiSpecies(
+            f"mms{self.probe}_dis_bulkv_gse_brst",
+            f"mms{self.probe}_des_bulkv_gse_brst",
+        )
+
+    @cached_property
+    def T(self):
+        return MultiSpecies(
+            f"mms{self.probe}_dis_temppara_brst",
+            f"mms{self.probe}_dis_tempperp_brst",
+        )
+
+    @cached_property
+    def E(self):
+        return MultiSpecies(
+            f"mms{self.probe}_dis_energyspectr_omni_brst",
+            f"mms{self.probe}_des_energyspectr_omni_brst",
+        )
+
+    # @property
+    # def v_0(self, species="i"):
+    #     title_print("Calculating background flow speed")
+    #     species = self.Species(species)
+    #     if species.ion:
+    #         self.v_0_i = np.mean(np.linalg.norm(self.v_i, axis=1))
+    #     if species.elec:
+    #         self.v_0_e = np.mean(np.linalg.norm(self.v_e, axis=1))
+
+    # @property
+    # def v_A(self):
+    #     title_print("Calculating Alfven speed")
+    #     self.v_A = self.mean_B / np.sqrt(mu_0 * self.number_density_i) / 1e3
+
+    # @property
+    # def number_density(self, species="i"):
+    #     species = self.Species(species)
+    #     if species.ion:
+    #         self.number_density_i = (
+    #             self.get_tplot_data(f"mms{self.probe}_dis_numberdensity_brst") * 1e6
+    #         ).mean()
+    #     if species.elec:
+    #         self.number_density_e = (
+    #             self.get_tplot_data(f"mms{self.probe}_des_numberdensity_brst") * 1e6
+    #         ).mean()
+
+    # @property
+    # def beta(self, species="i"):
+    #     title_print("Calculating plasma betas")
+    #     species = self.Species(species)
+    #     magPress = self.mean_B ** 2 / (2 * mu_0)
+    #     if species.ion:
+    #         self.beta_i = (
+    #             self.number_density_i * k_B * self.T_i[:, 0].mean()
+    #         ) / magPress
+    #     if species.elec:
+    #         self.beta_e = (
+    #             self.number_density_e * k_B * self.T_e[:, 0].mean()
+    #         ) / magPress
+
+    # @property
+    # def rho(self, species="i"):
+    #     title_print("Calculating gyroradius")
+    #     species = self.Species(species)
+    #     if species.ion:
+    #         i_thermal_velocity = np.sqrt(self.T_i[:, 1].mean() * 2 * q / m_i) / 1e3
+    #         i_gyrofrequency = q * self.mean_B / m_i
+    #         self.rho_i = i_thermal_velocity / i_gyrofrequency
+    #     if species.elec:
+    #         e_thermal_velocity = np.sqrt(self.T_i[:, 1].mean() * 2 * q / m_e) / 1e3
+    #         e_gyrofrequency = q * self.mean_B / m_e
+    #         self.rho_e = e_thermal_velocity / e_gyrofrequency
+
+    # @property
+    # def p(self, species="i"):
+    #     title_print("Calculating Intertial length")
+    #     species = self.Species(species)
+    #     if species.ion:
+    #         i_plasma_frequency = 1.32e3 * np.sqrt(self.number_density_i)
+    #         self.p_i = c / i_plasma_frequency
+    #         self.p_i /= 1e3
+    #     if species.elec:
+    #         e_plasma_frequency = 5.64e4 * np.sqrt(self.number_density_e)
+    #         self.p_e = c / e_plasma_frequency
+    #         self.p_e /= 1e3
+
+    # @property
+    # def time(self, var="B"):
+    #     title_print("Getting time arrays")
+    #     var = var.split("|")
+    #     if "B" in var:
+    #         self.time_B = self.get_tplot_data(
+    #             f"mms{self.probe}_fgm_b_gse_brst_l2", time=True
+    #         )
+    #     if "V" in var:
+    #         self.time_V = self.get_tplot_data(
+    #             f"mms{self.probe}_dis_bulkv_gse_brst", time=True
+    #         )
+    #     if "e" in var:
+    #         self.time_e = self.get_tplot_data(
+    #             f"mms{self.probe}_des_temppara_brst", time=True
+    #         )
