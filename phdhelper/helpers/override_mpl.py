@@ -21,3 +21,11 @@ def override(name=""):
         )
         plt.register_cmap("custom_rgb", cmap)
         plt.rc("image", cmap="custom_rgb")
+
+def cmaps(name="custom_diverging"):
+    if name == 'custom_diverging':
+        cmap = LinearSegmentedColormap.from_list(
+            "custom_diverging",
+            [tuple(hex_to_rgb(i)) for i in [red, mandarin, white, light_blue, blue]]
+        )
+    plt.register_cmap(name, cmap)

@@ -4,6 +4,9 @@ blue = "#107EA9"
 dark = "#020E13"
 purple = "#82349C"
 red_intense = "#E12346"
+mandarin = '#E67737'
+light_blue = '#B3B7D1'
+white = '#FFFFFF'
 
 
 def hex_to_rgb(hex):
