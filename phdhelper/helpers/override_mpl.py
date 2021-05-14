@@ -21,6 +21,21 @@ def override(name=""):
         )
         plt.register_cmap("custom_rgb", cmap)
         plt.rc("image", cmap="custom_rgb")
+    if "book_gs" in name:
+        colours = (cycler(color=['k']*4 + ['#777777']*4) + cycler(linestyle=['-', '--', ':', '-.']*2))
+        plt.rc('axes', grid=False, prop_cycle=colours)
+        plt.rc("lines", linewidth=2)
+        plt.rc("xtick", direction="in", labelbottom=False, labeltop=False)
+        plt.rc("ytick", direction="in", labelleft=False, labelright=False)
+
+
+        cmap = LinearSegmentedColormap.from_list(
+            "custom_rgb",
+            [tuple(hex_to_rgb(i)) for i in ['#FFFFFF', '#000000']],
+        )
+        plt.register_cmap("book_gs", cmap)
+        plt.rc("image", cmap="book_gs")
+
 
 def cmaps(name="custom_diverging"):
     if name == 'custom_diverging':
