@@ -4,3 +4,4 @@ build
 dist
 phdhelper.egg-info
 __pycache__
+.DS_Store
