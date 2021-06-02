@@ -1,0 +1,6 @@
+.vscode
+.pytest_cache
+build
+dist
+phdhelper.egg-info
+__pycache__
