@@ -5,7 +5,7 @@
 1.  Clone the repository and navigate to the root folder.
 1.  If using `virtualenv` make sure to `workon` the environment you wish to install in.
 1.  Run the following command to install an editable version of the module to your python installation using pip:
-    ```{bash}
+    ```bash
     pip install -e .
     ```
     The `-e` stands for 'editable' & means that any edits to the code are updated live across any/all installs without needing to `pip install` again.
@@ -62,7 +62,7 @@ Contains most of the helper code.
 
 Constants file containing colours (hex string) consistent with theme.
 
-```{python}
+```python
 from phdhelper.helpers.COLOURS import red, green, blue
 
 print(red, green, blue)
@@ -78,7 +78,7 @@ Returns
 
 Contains various astrophysical constants as pure floats, similar to np.pi=3.14159265...
 
-```{python}
+```python
 from phdhelper.helpers.CONSTANTS import *
 
 print(f"Permittivity of free space: {epsilon_0}")
@@ -96,7 +96,7 @@ Speed of light: 299792458.0
 
 Contains helpers for navigating os. Includes get_path & new_path
 
-```{python}
+```python
 from phdhelper.helpers.os_shortcuts import get_path, new_path
 
 data_src = get_path(__file__, "..")  #  Full path to directory above current file
@@ -123,7 +123,7 @@ Routines for customising the default behaviour of matplotlib.
 
 Contains an `override()` method which when called in a script will override some matplotlib defaults, including setting default colours (using the ones in COLOURS), changing line width, adding a grid, etc...
 
-```{python}
+```python
 from phdhelper.helpers import override_mpl
 from phdhelper.helpers.os_shortcuts import *
 import matplotlib.pyplot as plt
@@ -153,13 +153,13 @@ plt.savefig(plots_path("book_style.png"))
 Returns
 
 <p align="center">
-    <img src=".README/new_default.png" width=300>
-    <img src=".README/book_style.png" width=300>
+    <img src=".README/new_default.png" width=400>
+    <img src=".README/book_style.png" width=400>
 </p>
 
 Also contains `cmap()`. Currently only `"custom_diverging"` implemented. Use to initialise custom colour maps.
 
-```{python}
+```python
 import numpy as np
 import matplotlib.pyplot as plt
 from phdhelper.helpers import override_mpl, os_shortcuts
@@ -199,6 +199,6 @@ plt.savefig(save_fig("book_cmap.png"))
 Returns
 
 <p align="center">
-    <img src=".README/default_cmaps.png" width=300>
-    <img src=".README/book_cmap.png" width=300>
+    <img src=".README/default_cmaps.png" width=400>
+    <img src=".README/book_cmap.png" width=400>
 </p>
