@@ -10,8 +10,9 @@ def get_path(file, level="."):
     return path
 
 
-def new_path(path):
-    def f(extension):
-        return path + "/" + extension
+def new_path(path, extension=""):
+    def f(filename):
+        # return path + "/" + extension
+        return f"{path}{'/' + extension if extension != '' else ''}/{filename}"
 
     return f
