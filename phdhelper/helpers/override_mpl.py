@@ -25,6 +25,8 @@ def override(
         plt.rc("ytick.minor", visible=True)
         matplotlib.rc("font", family=font)
 
+        plt.rc("legend", fancybox=False, edgecolor="0.2", facecolor="0.2")
+
         cmap = LinearSegmentedColormap.from_list(
             "custom_rgb",
             [tuple(hex_to_rgb(i)) for i in [green, blue, red_intense]],
