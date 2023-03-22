@@ -7,6 +7,10 @@ red_intense = "#E12346"
 mandarin = "#E67737"
 light_blue = "#C3F4FE"
 white = "#FFFFFF"
+green_deep = "#4A9669"
+green_aquamarine = "#6CE09A"
+red_ultra = "#EB6F86"
+blue_green = "#2790B9"
 
 
 def hex_to_rgb(hex):

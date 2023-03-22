@@ -1,16 +1,32 @@
 import enum
+from typing import Literal
+
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import cycler
 from matplotlib.colors import LinearSegmentedColormap
-from .COLOURS import *
-import matplotlib
-from typing import Literal
+
+from .COLOURS import (
+    blue,
+    blue_green,
+    dark,
+    green,
+    green_aquamarine,
+    hex_to_rgb,
+    light_blue,
+    mandarin,
+    purple,
+    red,
+    red_intense,
+    red_ultra,
+    white,
+)
 
 defaults = plt.rcParams.copy()
 
 
 def override(
-    name: Literal["", "pub", "book_gs"] = "",
+    name: str = "",
     font: Literal["eb garamond", "inter"] = "inter",
     serif: bool = True,
 ):
@@ -25,7 +41,13 @@ def override(
         plt.rc("ytick.minor", visible=True)
         matplotlib.rc("font", family=font)
 
-        plt.rc("legend", fancybox=False, edgecolor="0.2", facecolor="0.2")
+        plt.rc(
+            "legend",
+            fancybox=False,
+            edgecolor="0.95",
+            facecolor="0.95",
+            framealpha="0.9",
+        )
 
         cmap = LinearSegmentedColormap.from_list(
             "custom_rgb",
@@ -33,6 +55,9 @@ def override(
         )
         plt.register_cmap("custom_rgb", cmap)
         plt.rc("image", cmap="custom_rgb")
+    if "krgb" in name:
+        colours = cycler("color", [dark, red, green, blue, purple])
+        plt.rc("axes", prop_cycle=colours)
     if "pub" in name:
         override()
         matplotlib.rc("text", usetex=True)
@@ -71,5 +96,20 @@ def cmaps(name="custom_diverging"):
         cmap = LinearSegmentedColormap.from_list(
             "custom_diverging",
             [tuple(hex_to_rgb(i)) for i in [red, mandarin, white, light_blue, blue]],
+        )
+    elif name == "custom_linear":
+        cmap = LinearSegmentedColormap.from_list(
+            "custom_linear",
+            [
+                tuple(hex_to_rgb(i))
+                for i in [
+                    blue,
+                    blue_green,
+                    green,
+                    green_aquamarine,
+                    red_ultra,
+                    mandarin,
+                ]
+            ],
         )
     plt.register_cmap(name, cmap)
